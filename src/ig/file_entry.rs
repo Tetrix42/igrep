@@ -14,7 +14,30 @@ impl FileEntry {
                 .chain(
                     matches
                         .into_iter()
-                        .map(|m| EntryType::Match(m.line_number, m.text, m.match_offsets)),
+                        .map(|m| {
+                            let mut text = String::new();
+                            let mut ofs = m.match_offsets;
+                            let mut pos = 0;
+                            for c in m.text.chars()
+                            {
+                                pos += 1;
+                                if c != '\t'
+                                {
+                                    text.push(c);
+                                    continue
+                                }
+                                text.push_str("  ");
+                                for p in &mut ofs
+                                {
+                                    if p.0 >= pos
+                                    {
+                                        p.0 += 1;
+                                        p.1 += 1;
+                                    }
+                                }
+                            }
+                            EntryType::Match(m.line_number, text, ofs)
+                        }),
                 )
                 .collect(),
         )
